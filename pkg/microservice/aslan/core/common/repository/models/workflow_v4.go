@@ -72,6 +72,8 @@ type WorkflowV4 struct {
 	CustomField          *CustomField `bson:"custom_field"           yaml:"-"                      json:"custom_field"`
 	EnableApprovalTicket bool         `bson:"enable_approval_ticket" yaml:"enable_approval_ticket" json:"enable_approval_ticket"`
 	ApprovalTicketID     string       `bson:"approval_ticket_id"     yaml:"approval_ticket_id"     json:"approval_ticket_id"`
+	// Graph is editor-only canvas JSON; ignored by hash and execution.
+	Graph map[string]interface{} `bson:"graph,omitempty" yaml:"graph,omitempty" json:"graph,omitempty"`
 
 	// all hookCtls are deprecated
 	HookCtls        []*WorkflowV4Hook `bson:"hook_ctl"            yaml:"-"                   json:"hook_ctl"`
@@ -86,7 +88,7 @@ func (w *WorkflowV4) UpdateHash() {
 
 func (w *WorkflowV4) CalculateHash() [md5.Size]byte {
 	fieldList := make(map[string]interface{})
-	ignoringFieldList := []string{"CreatedBy", "CreateTime", "UpdatedBy", "UpdateTime", "Description", "Hash", "DisplayName", "HookCtls", "JiraHookCtls", "MeegoHookCtls", "GeneralHookCtls", "ConcurrencyLimit", "ShareStorages", "NotifyCtls"}
+	ignoringFieldList := []string{"CreatedBy", "CreateTime", "UpdatedBy", "UpdateTime", "Description", "Hash", "DisplayName", "HookCtls", "JiraHookCtls", "MeegoHookCtls", "GeneralHookCtls", "ConcurrencyLimit", "ShareStorages", "NotifyCtls", "Graph"}
 	ignoringFields := sets.NewString(ignoringFieldList...)
 
 	val := reflect.ValueOf(*w)
