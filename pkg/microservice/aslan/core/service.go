@@ -88,6 +88,10 @@ func StartControllers(stopCh <-chan struct{}) {
 func initRsaKey() {
 	clientset, err := clientmanager.NewKubeClientManager().GetKubernetesClientSet(setting.LocalClusterID)
 	if err != nil {
+		if commonconfig.Mode() == setting.DebugMode {
+			log.Warnf("skip initRsaKey k8s in debug mode: %v", err)
+			return
+		}
 		log.DPanic(err)
 	}
 	_, err = clientset.CoreV1().Secrets(commonconfig.Namespace()).Get(context.TODO(), setting.RSASecretName, metav1.GetOptions{})
@@ -96,13 +100,25 @@ func initRsaKey() {
 		if apierrors.IsNotFound(err) {
 			err, publicKey, privateKey := rsa.GetRsaKey()
 			if err != nil {
+				if commonconfig.Mode() == setting.DebugMode {
+					log.Warnf("skip initRsaKey rsa files in debug mode: %v", err)
+					return
+				}
 				log.DPanic(err)
 			}
 			err = kube.CreateOrUpdateRSASecret(publicKey, privateKey, setting.LocalClusterID)
 			if err != nil {
+				if commonconfig.Mode() == setting.DebugMode {
+					log.Warnf("skip initRsaKey secret sync in debug mode: %v", err)
+					return
+				}
 				log.DPanic(err)
 			}
 		} else {
+			if commonconfig.Mode() == setting.DebugMode {
+				log.Warnf("skip initRsaKey in debug mode: %v", err)
+				return
+			}
 			log.DPanic(err)
 		}
 	}
@@ -113,7 +129,7 @@ func Start(ctx context.Context) {
 		Level:       commonconfig.LogLevel(),
 		Filename:    commonconfig.LogFile(),
 		SendToFile:  commonconfig.SendLogToFile(),
-		Development: commonconfig.Mode() != setting.ReleaseMode,
+		Development: false,
 	})
 
 	start := time.Now().UnixMilli()
@@ -309,11 +325,19 @@ func initResourcesForExternalClusters() {
 func initDinD() {
 	err := commonutil.SyncDinDForRegistries()
 	if err != nil {
+		if commonconfig.Mode() == setting.DebugMode {
+			log.Warnf("skip initDinD in debug mode: %v", err)
+			return
+		}
 		log.Fatal(err)
 	}
 }
 
 func initKlock() {
+	if commonconfig.Mode() == setting.DebugMode {
+		log.Warnf("skip initKlock in debug mode")
+		return
+	}
 	_ = klock.Init(config.Namespace())
 }
 

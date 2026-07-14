@@ -49,6 +49,11 @@ func Mode() string {
 	return mode
 }
 
+// SkipLicenseCheck 为 true 时不调用 plutus-enterprise（内网二开/无商业授权服务时使用）
+func SkipLicenseCheck() bool {
+	return viper.GetBool(setting.ENVSkipLicenseCheck)
+}
+
 // LogLevel returns the configured log level, returns info if unset
 func LogLevel() string {
 	logLevel := viper.GetString(setting.ENVLogLevel)
@@ -105,7 +110,11 @@ func AslanServiceAddress() string {
 
 func UserServiceAddress() string {
 	s := UserServiceInfo()
-	return GetServiceAddress(s.Name, s.Port)
+	port := s.Port
+	if viper.IsSet(setting.ENVUserPort) {
+		port = int32(viper.GetInt(setting.ENVUserPort))
+	}
+	return GetServiceAddress(s.Name, port)
 }
 
 func HubServerServiceInfo() *setting.ServiceInfo {

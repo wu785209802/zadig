@@ -22,6 +22,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	commonconfig "github.com/koderover/zadig/v2/pkg/config"
 	"github.com/koderover/zadig/v2/pkg/setting"
 	"github.com/koderover/zadig/v2/pkg/shared/client/plutusenterprise"
 	e "github.com/koderover/zadig/v2/pkg/tool/errors"
@@ -57,6 +58,9 @@ func CheckDefineResourceParam(req setting.Request, reqSpec setting.RequestSpec) 
 }
 
 func CheckZadigProfessionalLicense() error {
+	if commonconfig.SkipLicenseCheck() {
+		return nil
+	}
 	licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
 	if err != nil {
 		return fmt.Errorf("failed to validate zadig license status, error: %s", err)
@@ -68,6 +72,9 @@ func CheckZadigProfessionalLicense() error {
 }
 
 func CheckZadigEnterpriseLicense() error {
+	if commonconfig.SkipLicenseCheck() {
+		return nil
+	}
 	licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
 	if err != nil {
 		return fmt.Errorf("failed to validate zadig license status, error: %s", err)
@@ -96,6 +103,9 @@ func ValidateZadigEnterpriseLicense(licenseStatus *plutusenterprise.ZadigXLicens
 }
 
 func CheckZadigLicenseFeatureSae() error {
+	if commonconfig.SkipLicenseCheck() {
+		return nil
+	}
 	licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
 	if err != nil {
 		return fmt.Errorf("failed to validate zadig license status, error: %s", err)
@@ -112,6 +122,9 @@ func CheckZadigLicenseFeatureSae() error {
 }
 
 func CheckZadigLicenseFeatureDelivery() error {
+	if commonconfig.SkipLicenseCheck() {
+		return nil
+	}
 	licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
 	if err != nil {
 		return fmt.Errorf("failed to validate zadig license status, error: %s", err)

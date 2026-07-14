@@ -19,6 +19,7 @@ package plutusvendor
 import (
 	"fmt"
 
+	"github.com/koderover/zadig/v2/pkg/config"
 	"github.com/koderover/zadig/v2/pkg/tool/httpclient"
 )
 
@@ -27,6 +28,9 @@ type CheckSignatrueResp struct {
 }
 
 func (c *Client) CheckSignature(userNum int64) (*CheckSignatrueResp, error) {
+	if config.SkipLicenseCheck() {
+		return &CheckSignatrueResp{Code: 0}, nil
+	}
 	url := fmt.Sprintf("/signature/check?user_num=%d", userNum)
 	res := &CheckSignatrueResp{}
 	_, err := c.Post(url, httpclient.SetResult(res))
@@ -39,8 +43,8 @@ const (
 	ZadigSystemTypeEnterprise   = "enterprise"
 	ZadigXLicenseStatusNormal   = "normal"
 
-	ZadigLicenseFeatureAI = "ai"
-	ZadigLicenseFeatureSae = "sae"
+	ZadigLicenseFeatureAI       = "ai"
+	ZadigLicenseFeatureSae      = "sae"
 	ZadigLicenseFeatureDelivery = "delivery"
 )
 
@@ -61,6 +65,18 @@ type ZadigXLicenseStatus struct {
 }
 
 func (c *Client) CheckZadigXLicenseStatus() (*ZadigXLicenseStatus, error) {
+	if config.SkipLicenseCheck() {
+		return &ZadigXLicenseStatus{
+			Type:      ZadigSystemTypeEnterprise,
+			Status:    ZadigXLicenseStatusNormal,
+			UserLimit: 999999,
+			Features: []string{
+				ZadigLicenseFeatureAI,
+				ZadigLicenseFeatureSae,
+				ZadigLicenseFeatureDelivery,
+			},
+		}, nil
+	}
 	url := "/license"
 	res := &ZadigXLicenseStatus{}
 	_, err := c.Get(url, httpclient.SetResult(res))

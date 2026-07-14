@@ -830,7 +830,7 @@ func ProcessServiceWebhook(updated, current *commonmodels.Service, serviceName s
 func getAddressFromPath(path, owner, repo string, logger *zap.Logger) string {
 	res := strings.Split(path, fmt.Sprintf("/%s/%s/", owner, repo))
 	if len(res) != 2 {
-		logger.With(zap.String("path", path), zap.String("owner", owner), zap.String("repo", repo)).DPanic("Invalid path")
+		logger.With(zap.String("path", path), zap.String("owner", owner), zap.String("repo", repo)).Warn("invalid service path (debug)")
 		return ""
 	}
 	return res[0]

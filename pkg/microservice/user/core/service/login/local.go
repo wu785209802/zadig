@@ -28,6 +28,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	aslanutil "github.com/koderover/zadig/v2/pkg/microservice/aslan/core/common/util"
+	commonconfig "github.com/koderover/zadig/v2/pkg/config"
 	"github.com/koderover/zadig/v2/pkg/microservice/user/config"
 	"github.com/koderover/zadig/v2/pkg/microservice/user/core/repository"
 	"github.com/koderover/zadig/v2/pkg/microservice/user/core/repository/models"
@@ -72,6 +73,10 @@ type CheckSignatureRes struct {
 }
 
 func CheckSignature(lastLoginTime int64, logger *zap.SugaredLogger) error {
+	if commonconfig.SkipLicenseCheck() {
+		return nil
+	}
+
 	enterpriseClient := plutusenterprise.New()
 	err := enterpriseClient.Health()
 	if err != nil {

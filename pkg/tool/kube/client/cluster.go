@@ -21,6 +21,9 @@ import (
 	"sync"
 
 	kruise "github.com/openkruise/kruise-api/apps/v1alpha1"
+	commonconfig "github.com/koderover/zadig/v2/pkg/config"
+	"github.com/koderover/zadig/v2/pkg/setting"
+	"github.com/koderover/zadig/v2/pkg/tool/log"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -34,6 +37,7 @@ import (
 var once sync.Once
 
 var c cluster.Cluster
+var clusterDisabled bool
 
 func init() {
 	ctrl.SetLogger(klog.Background())
@@ -42,10 +46,19 @@ func init() {
 // Cluster is a singleton, it will be initialized only once.
 func Cluster() cluster.Cluster {
 	once.Do(func() {
-		var err error
-		c, err = initCluster(ctrl.GetConfigOrDie())
+		if commonconfig.Mode() == setting.DebugMode {
+			clusterDisabled = true
+			log.Warnf("skip kube cluster init in debug mode")
+			return
+		}
+		restConfig, err := ctrl.GetConfig()
 		if err != nil {
 			panic(err)
+		}
+		var initErr error
+		c, initErr = initCluster(restConfig)
+		if initErr != nil {
+			panic(initErr)
 		}
 	})
 
@@ -53,22 +66,37 @@ func Cluster() cluster.Cluster {
 }
 
 func Client() client.Client {
+	if clusterDisabled || c == nil {
+		return nil
+	}
 	return Cluster().GetClient()
 }
 
 func APIReader() client.Reader {
+	if clusterDisabled || c == nil {
+		return nil
+	}
 	return Cluster().GetAPIReader()
 }
 
 func RESTConfig() *rest.Config {
+	if clusterDisabled || c == nil {
+		return nil
+	}
 	return Cluster().GetConfig()
 }
 
 func Scheme() *runtime.Scheme {
+	if clusterDisabled || c == nil {
+		return nil
+	}
 	return Cluster().GetScheme()
 }
 
 func Start(ctx context.Context) error {
+	if clusterDisabled || c == nil {
+		return nil
+	}
 	return Cluster().Start(ctx)
 }
 

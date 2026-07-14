@@ -537,11 +537,15 @@ func (w *Workflow) Validate(isExecution bool) error {
 		return e.ErrLintWorkflow.AddErr(err)
 	}
 
-	licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
-	if err != nil {
-		return fmt.Errorf("failed to validate zadig license status, error: %s", err)
+	isProfessional := configbase.SkipLicenseCheck()
+	if !isProfessional {
+		licenseStatus, err := plutusenterprise.New().CheckZadigXLicenseStatus()
+		if err != nil {
+			return fmt.Errorf("failed to validate zadig license status, error: %s", err)
+		}
+		isProfessional = commonutil.ValidateZadigProfessionalLicense(licenseStatus)
 	}
-	if !commonutil.ValidateZadigProfessionalLicense(licenseStatus) {
+	if !isProfessional {
 		if w.ConcurrencyLimit != -1 && w.ConcurrencyLimit != 1 {
 			return e.ErrLicenseInvalid.AddDesc("基础版工作流并发只支持开关，不支持数量")
 		}
@@ -576,7 +580,7 @@ func (w *Workflow) Validate(isExecution bool) error {
 	}
 
 	for _, stage := range w.Stages {
-		if !commonutil.ValidateZadigProfessionalLicense(licenseStatus) {
+		if !isProfessional {
 			if stage.ManualExec != nil && stage.ManualExec.Enabled {
 				return e.ErrLicenseInvalid.AddDesc("基础版不支持工作流手动执行")
 			}

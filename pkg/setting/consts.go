@@ -27,6 +27,7 @@ const (
 	ENVImagePullPolicy            = "IMAGE_PULL_POLICY"
 	ENVBuildKitImage              = "BUILD_KIT_IMAGE"
 	ENVMode                       = "MODE"
+	ENVSkipLicenseCheck           = "SKIP_LICENSE_CHECK"
 	ENVMongoDBConnectionString    = "MONGODB_CONNECTION_STRING"
 	ENVIsDocumentDB               = "IS_DOCUMENT_DB"
 	ENVAslanDBName                = "ASLAN_DB"

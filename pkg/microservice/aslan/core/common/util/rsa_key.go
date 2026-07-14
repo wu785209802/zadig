@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/koderover/zadig/v2/pkg/tool/clientmanager"
@@ -31,16 +32,32 @@ import (
 	"github.com/koderover/zadig/v2/pkg/tool/rsa"
 )
 
+const (
+	rsaPublicKeyFile  = "etc/encryption/rsa-public.pem"
+	rsaPrivateKeyFile = "etc/encryption/rsa-private.pem"
+)
+
 func GetRSAKey() ([]byte, []byte, error) {
 	clientset, err := clientmanager.NewKubeClientManager().GetKubernetesClientSet(setting.LocalClusterID)
+	if err == nil {
+		res, err := clientset.CoreV1().Secrets(config.Namespace()).Get(context.TODO(), setting.RSASecretName, metav1.GetOptions{})
+		if err == nil {
+			return res.Data["publicKey"], res.Data["privateKey"], nil
+		}
+	}
+	return getRSAKeyFromFiles()
+}
+
+func getRSAKeyFromFiles() ([]byte, []byte, error) {
+	pub, err := os.ReadFile(rsaPublicKeyFile)
 	if err != nil {
 		return nil, nil, err
 	}
-	res, err := clientset.CoreV1().Secrets(config.Namespace()).Get(context.TODO(), setting.RSASecretName, metav1.GetOptions{})
+	priv, err := os.ReadFile(rsaPrivateKeyFile)
 	if err != nil {
 		return nil, nil, err
 	}
-	return res.Data["publicKey"], res.Data["privateKey"], nil
+	return pub, priv, nil
 }
 
 type GetRSAPublicKeyRes struct {

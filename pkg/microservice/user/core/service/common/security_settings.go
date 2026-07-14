@@ -24,6 +24,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	configbase "github.com/koderover/zadig/v2/pkg/config"
+	commonconfig "github.com/koderover/zadig/v2/pkg/config"
 	"github.com/koderover/zadig/v2/pkg/setting"
 	"github.com/koderover/zadig/v2/pkg/shared/client/aslan"
 	"github.com/koderover/zadig/v2/pkg/tool/cache"
@@ -33,6 +34,10 @@ import (
 const securitySettingsCacheTTL = 30 * time.Second
 
 func GetSystemSecuritySettings(logger *zap.SugaredLogger) (*aslan.SystemSetting, error) {
+	if commonconfig.SkipLicenseCheck() {
+		return &aslan.SystemSetting{MFAEnabled: false}, nil
+	}
+
 	cachedSettings, err := getSystemSecuritySettingsFromCache()
 	if err == nil && cachedSettings != nil {
 		return cachedSettings, nil

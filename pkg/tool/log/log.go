@@ -17,6 +17,7 @@ limitations under the License.
 package log
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -217,11 +218,15 @@ func Errorf(format string, args ...interface{}) {
 }
 
 func DPanic(args ...interface{}) {
-	getSimpleLogger().DPanic(args...)
+	if getSimpleLogger() == nil {
+		fmt.Fprintln(os.Stderr, fmt.Sprint(args...))
+		return
+	}
+	getSimpleLogger().Debug(fmt.Sprint(args...))
 }
 
 func DPanicf(format string, args ...interface{}) {
-	getSimpleLogger().DPanicf(format, args...)
+	DPanic(fmt.Sprintf(format, args...))
 }
 
 func Panic(args ...interface{}) {

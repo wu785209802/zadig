@@ -24,8 +24,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	commonconfig "github.com/koderover/zadig/v2/pkg/config"
 	"github.com/koderover/zadig/v2/pkg/microservice/aslan/core"
 	"github.com/koderover/zadig/v2/pkg/microservice/aslan/server/rest"
+	"github.com/koderover/zadig/v2/pkg/setting"
 	"github.com/koderover/zadig/v2/pkg/tool/kube/client"
 	"github.com/koderover/zadig/v2/pkg/tool/log"
 )
@@ -33,6 +35,10 @@ import (
 func Serve(ctx context.Context) error {
 	go func() {
 		if err := client.Start(ctx); err != nil {
+			if commonconfig.Mode() == setting.DebugMode {
+				log.Warnf("skip kube client in debug mode: %v", err)
+				return
+			}
 			panic(err)
 		}
 	}()

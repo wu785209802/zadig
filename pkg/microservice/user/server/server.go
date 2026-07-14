@@ -40,7 +40,7 @@ func Serve(ctx context.Context) error {
 	log.Info("Start user system service")
 
 	engine := rest.NewEngine()
-	server := &http.Server{Addr: ":80", Handler: engine}
+	server := &http.Server{Addr: "0.0.0.0:8090", Handler: engine}
 
 	grpcServer := grpc.NewServer()
 
